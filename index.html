@@ -30,10 +30,24 @@ h1, h2, .role-text, .space-main, .top-status, .btn {
       color: white;
     }
 
-    body {
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
+body {
+  min-height: 100vh;
+  overflow-x: hidden;
+
+  background-color: #070707;
+  background-image:
+    radial-gradient(white 1px, transparent 1px),
+    radial-gradient(white 1px, transparent 1px),
+    radial-gradient(rgba(255, 255, 255, 0.6) 1px, transparent 1px);
+  background-size:
+    120px 120px,
+    200px 200px,
+    300px 300px;
+  background-position:
+    0 0,
+    50px 80px,
+    120px 160px;
+}
 
     button, input, select {
       font: inherit;
