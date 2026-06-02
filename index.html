@@ -1,504 +1,334 @@
-<!DOCTYPE html>
+from pathlib import Path
+
+html = """<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Impostor Timer Game</title>
+  <title>Impostor Timer</title>
   <style>
-    * {
-      box-sizing: border-box;
-      font-family: Arial, Helvetica, sans-serif;
-      -webkit-tap-highlight-color: transparent;
-      user-select: none;
-    }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background: radial-gradient(circle at top, #242424, #080808);
-      color: white;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-    }
-
-    .game {
-      width: 100%;
-      max-width: 760px;
-      background: #141414;
-      border: 3px solid #333;
-      border-radius: 25px;
-      padding: 30px;
-      text-align: center;
-      box-shadow: 0 0 40px rgba(0, 0, 0, 0.8);
-    }
-
-    h1 {
-      margin-top: 0;
-      font-size: 42px;
-      letter-spacing: 1px;
-    }
-
-    .subtitle {
-      color: #bbb;
-      font-size: 18px;
-      margin-bottom: 25px;
-    }
-
-    .screen {
-      display: none;
-    }
-
-    .screen.active {
-      display: block;
-    }
-
-    select {
-      font-size: 26px;
-      padding: 12px 20px;
-      border-radius: 12px;
-      border: none;
-      margin: 15px;
-      text-align: center;
-      user-select: auto;
-    }
-
-    button {
-      cursor: pointer;
-      border: none;
-      border-radius: 16px;
-      font-weight: bold;
-      transition: transform 0.08s ease, opacity 0.2s ease;
-    }
-
-    button:active {
-      transform: scale(0.96);
-    }
-
-    .normal-btn {
-      background: white;
-      color: black;
-      font-size: 24px;
-      padding: 15px 30px;
-      margin: 10px;
-    }
-
-    .danger-btn {
-      background: #ff1f1f;
-      color: white;
-      font-size: 24px;
-      padding: 15px 30px;
-      margin: 10px;
-    }
-
-    .tap-zone {
-      width: 100%;
-      min-height: 430px;
-      border-radius: 28px;
-      border: 4px solid #5c0000;
-      background: radial-gradient(circle at 50% 35%, #ff3d3d, #b80000 45%, #390000);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      cursor: pointer;
-      box-shadow: 0 14px 0 #230000, 0 0 45px rgba(255, 0, 0, 0.45);
-      transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.2s ease;
-      padding: 25px;
-    }
-
-    .tap-zone:active {
-      transform: translateY(10px) scale(0.99);
-      box-shadow: 0 4px 0 #230000, 0 0 30px rgba(255, 0, 0, 0.65);
-    }
-
-    .tap-zone.running {
-      filter: brightness(0.9);
-      background: radial-gradient(circle at 50% 35%, #ff7777, #e00000 45%, #480000);
-    }
-
-    .tap-main {
-      font-size: 74px;
-      font-weight: 900;
-      letter-spacing: 2px;
-      margin-bottom: 20px;
-    }
-
-    .hidden-timer {
-      font-size: 52px;
-      font-weight: bold;
-      color: rgba(255, 255, 255, 0.18);
-      border: 2px dashed rgba(255, 255, 255, 0.25);
-      border-radius: 16px;
-      padding: 12px 28px;
-      margin: 12px 0;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .fake-timer-text {
-      font-size: 24px;
-      color: rgba(255, 255, 255, 0.78);
-      margin-top: 10px;
-      line-height: 1.4;
-    }
-
-    .timer {
-      font-size: 80px;
-      font-weight: bold;
-      margin: 20px 0;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .message {
-      font-size: 30px;
-      margin: 25px 0;
-      min-height: 80px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .secret-box {
-      background: #050505;
-      border: 3px dashed #777;
-      border-radius: 18px;
-      padding: 30px;
-      margin: 25px 0;
-    }
-
-    .role {
-      font-size: 48px;
-      font-weight: bold;
-      margin: 15px 0;
-    }
-
-    .impostor {
-      color: #ff3636;
-    }
-
-    .time-role {
-      color: #37ff7a;
-    }
-
-    .small {
-      color: #aaa;
-      font-size: 17px;
-      line-height: 1.5;
-    }
-
-    .score-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-      font-size: 20px;
-    }
-
-    .score-table th,
-    .score-table td {
-      border-bottom: 1px solid #444;
-      padding: 12px;
-    }
-
-    .score-table th {
-      color: #ddd;
-    }
-
-    .hidden-warning {
-      color: #ffcc00;
-      font-size: 20px;
-      margin-top: 15px;
-    }
-
-    @media (max-width: 600px) {
-      .game {
-        padding: 20px;
-      }
-
-      h1 {
-        font-size: 32px;
-      }
-
-      .timer {
-        font-size: 58px;
-      }
-
-      .tap-zone {
-        min-height: 360px;
-      }
-
-      .tap-main {
-        font-size: 54px;
-      }
-
-      .hidden-timer {
-        font-size: 38px;
-      }
-
-      .role {
-        font-size: 38px;
-      }
-    }
+    * { box-sizing: border-box; font-family: Arial, Helvetica, sans-serif; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; min-height: 100%; background: #070707; color: white; }
+    body { min-height: 100vh; overflow-x: hidden; }
+    button, input, select { font: inherit; }
+    .screen { display: none; min-height: 100vh; width: 100vw; padding: 28px; }
+    .screen.active { display: flex; justify-content: center; align-items: center; }
+    .card { width: min(900px, 100%); background: #151515; border: 2px solid #333; border-radius: 26px; padding: 30px; text-align: center; box-shadow: 0 0 45px rgba(0,0,0,.75); }
+    h1 { margin: 0 0 10px; font-size: clamp(38px, 7vw, 72px); letter-spacing: 1px; }
+    h2 { margin: 10px 0; font-size: clamp(28px, 4vw, 44px); }
+    p { color: #cfcfcf; font-size: 18px; line-height: 1.45; }
+    .small { color: #aaa; font-size: 16px; }
+    .warning { color: #ffd34d; font-weight: bold; }
+    .row { display: flex; gap: 12px; justify-content: center; align-items: center; flex-wrap: wrap; margin: 18px 0; }
+    select { font-size: 24px; padding: 12px 18px; border-radius: 12px; border: none; text-align: center; }
+    input { width: min(460px, 100%); background: #050505; color: white; border: 2px solid #3d3d3d; border-radius: 14px; padding: 14px 16px; font-size: 22px; outline: none; }
+    input:focus { border-color: #ff3030; }
+    .player-inputs { display: grid; gap: 12px; margin: 22px auto; width: min(520px, 100%); }
+    .btn { border: none; border-radius: 16px; padding: 15px 28px; font-size: 22px; font-weight: 800; cursor: pointer; transition: transform .08s ease, filter .2s ease; }
+    .btn:active { transform: scale(.96); }
+    .primary { background: #ff2525; color: white; }
+    .secondary { background: white; color: black; }
+    .ghost { background: transparent; color: white; border: 2px solid #555; }
+    .secret-box { margin: 26px auto; padding: 36px 22px; background: #050505; border: 3px dashed #777; border-radius: 22px; width: min(620px, 100%); }
+    .role-text { font-size: clamp(40px, 7vw, 76px); font-weight: 900; margin: 18px 0; word-break: break-word; }
+    .impostor { color: #ff3434; }
+    .target { color: #32ff83; }
+    .full-button-screen { background: radial-gradient(circle at center, #280000, #050505 68%); padding: 0; cursor: pointer; user-select: none; }
+    .full-button-screen.active { display: flex; flex-direction: column; }
+    .top-status { width: 100%; text-align: center; padding: 24px 18px 12px; font-size: clamp(22px, 4vw, 38px); font-weight: 900; pointer-events: none; }
+    .space-box { flex: 1; width: 100%; border: none; background: radial-gradient(circle at 50% 40%, #ff4141, #b90000 45%, #390000); color: white; display: flex; align-items: center; justify-content: center; text-align: center; padding: 30px; box-shadow: inset 0 0 70px rgba(0,0,0,.55); pointer-events: none; }
+   .space-box.running { background: radial-gradient(circle at 50% 40%, #8cff8c, #00b83d 45%, #003b12);}
+    .space-main { font-size: clamp(48px, 11vw, 120px); font-weight: 1000; letter-spacing: 2px; line-height: 1.02; }
+    .space-sub { margin-top: 24px; font-size: clamp(18px, 3vw, 32px); color: rgba(255,255,255,.82); line-height: 1.35; }
+    .private-result { font-size: clamp(30px, 5vw, 58px); color: #fff; font-weight: 900; margin: 24px 0; }
+    .result-hidden { color: #ccc; font-size: 22px; line-height: 1.45; margin: 16px auto; width: min(650px, 100%); }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 18px; }
+    th, td { border-bottom: 1px solid #444; padding: 12px 8px; }
+    th { color: #ddd; }
+    .best { color: #32ff83; font-weight: bold; }
+    @media (max-width: 620px) { .screen { padding: 16px; } .card { padding: 22px; } .btn { width: 100%; } .top-status { padding-top: 18px; } }
   </style>
 </head>
 <body>
-  <div class="game">
-    <h1>Impostor Timer</h1>
-    <p class="subtitle">Match the secret time. One player has no idea what it is.</p>
-
-    <div id="setupScreen" class="screen active">
-      <div class="message">Choose number of players</div>
-
-      <label for="playerCount" class="small">Players:</label>
-      <select id="playerCount">
-        <option value="2">2</option>
-        <option value="3" selected>3</option>
-        <option value="4">4</option>
-        <option value="5">5</option>
-      </select>
-
-      <br />
-      <button class="danger-btn" onclick="startGame()">Start Game</button>
-
-      <p class="small">
-        Everyone secretly sees either the target time or “IMPOSTOR.”<br>
-        During timing, the timer is hidden, so nobody has to look away or leave.
-      </p>
+  <section id="setupScreen" class="screen active">
+    <div class="card">
+      <h1>Impostor Timer</h1>
+      <p>Each player secretly sees the target time, except one impostor. During turns, press <b>spacebar</b> to start and stop. Nobody sees the times until the end.</p>
+      <div class="row">
+        <label for="playerCount">Players:</label>
+        <select id="playerCount" onchange="renderNameInputs()">
+          <option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5</option>
+        </select>
+      </div>
+      <div id="playerInputs" class="player-inputs"></div>
+      <button class="btn primary" onclick="startGame()">Start Game</button>
+      <p class="small">Works locally or on GitHub Pages. Names only stay in this browser during the game.</p>
     </div>
+  </section>
 
-    <div id="roleIntroScreen" class="screen">
-      <div class="message" id="roleIntroText">Player 1, come look.</div>
-      <p class="hidden-warning">Make sure nobody else can see the screen.</p>
-      <button class="normal-btn" onclick="showRole()">Show My Role</button>
+  <section id="roleIntroScreen" class="screen">
+    <div class="card">
+      <h2 id="roleIntroTitle">Player 1</h2>
+      <p class="warning">Only this player should look at the screen.</p>
+      <p>Press the button below to reveal your role.</p>
+      <button class="btn primary" onclick="showRole()">Show My Role</button>
     </div>
+  </section>
 
-    <div id="roleScreen" class="screen">
+  <section id="roleScreen" class="screen">
+    <div class="card">
       <div class="secret-box">
-        <div class="small" id="rolePlayerLabel">Player 1</div>
-        <div id="roleText" class="role">Time: 3.2 sec</div>
+        <p id="roleNameLabel" class="small">Player 1</p>
+        <div id="roleText" class="role-text target">Time: 4.2 sec</div>
       </div>
-
-      <button class="danger-btn" onclick="hideRole()">Hide Role</button>
-      <p class="small">Press hide before passing the computer.</p>
+      <button class="btn primary" onclick="hideRole()">Hide Role / Next Player</button>
+      <p class="small">Do not say your role out loud.</p>
     </div>
+  </section>
 
-    <div id="readyScreen" class="screen">
-      <div class="message">All roles are set.</div>
-      <button class="danger-btn" onclick="startTurns()">Begin Timing</button>
-      <p class="small">Do not say the time out loud. The impostor is listening.</p>
+  <section id="readyScreen" class="screen">
+    <div class="card">
+      <h2>Roles are done.</h2>
+      <p>Now each player gets one turn. Press <b>spacebar</b> once to start and once to stop. Times are saved secretly and shown only at the end.</p>
+      <button class="btn primary" onclick="startTurns()">Begin Turns</button>
     </div>
+  </section>
 
-    <div id="turnScreen" class="screen">
-      <div class="message" id="turnText">Player 1's turn</div>
-
-      <div id="tapZone" class="tap-zone" onclick="pressTimerButton()">
-        <div id="tapMain" class="tap-main">TAP TO START</div>
-        <div class="hidden-timer">--.--</div>
-        <div id="timerHint" class="fake-timer-text">
-          Press anywhere in this red box.<br>
-          The real timer is hidden.
-        </div>
+  <section id="turnScreen" class="screen full-button-screen" onclick="handleFullScreenClick()">
+    <div id="turnStatus" class="top-status">Player's Turn</div>
+    <div id="spaceBox" class="space-box">
+      <div>
+        <div id="spaceMain" class="space-main">PRESS SPACE</div>
+        <div id="spaceSub" class="space-sub">Press spacebar to start.<br>The entire screen is the button.</div>
       </div>
     </div>
+  </section>
 
-    <div id="resultScreen" class="screen">
-      <div class="message" id="resultText">Player 1 got 3.10 seconds</div>
-      <button class="normal-btn" onclick="nextPlayer()">Next Player</button>
+  <section id="afterTurnScreen" class="screen">
+    <div class="card">
+      <h2 id="afterTurnTitle">Turn saved.</h2>
+      <div class="private-result">Time hidden.</div>
+      <p class="result-hidden">This player's time has been stored, but it will not be shown until the final reveal.</p>
+      <button class="btn primary" onclick="nextPlayer()">Next Player</button>
     </div>
+  </section>
 
-    <div id="gameOverScreen" class="screen">
-      <div class="message">Game over. Vote who the impostor is.</div>
+  <section id="voteScreen" class="screen">
+    <div class="card">
+      <h2>All turns are saved.</h2>
+      <p>Vote who you think the impostor is before revealing the results.</p>
+      <button class="btn primary" onclick="revealResults()">Reveal Results</button>
+    </div>
+  </section>
 
-      <button class="danger-btn" onclick="revealAnswer()">Reveal Answer</button>
-
-      <div id="finalReveal" style="display:none;">
-        <h2 id="impostorReveal"></h2>
-        <h2 id="targetReveal"></h2>
-
-        <table class="score-table">
-          <thead>
-            <tr>
-              <th>Player</th>
-              <th>Time</th>
-              <th>Difference</th>
-            </tr>
-          </thead>
-          <tbody id="scoreBody"></tbody>
-        </table>
-
-        <button class="normal-btn" onclick="resetGame()">Play Again</button>
+  <section id="finalScreen" class="screen">
+    <div class="card">
+      <h1>Results</h1>
+      <h2 id="impostorReveal">Impostor:</h2>
+      <h2 id="targetReveal">Target:</h2>
+      <table>
+        <thead><tr><th>Rank</th><th>Player</th><th>Time</th><th>Difference</th></tr></thead>
+        <tbody id="resultsBody"></tbody>
+      </table>
+      <div class="row">
+        <button class="btn secondary" onclick="resetGame()">Play Again</button>
+        <button class="btn ghost" onclick="samePlayersNewGame()">Same Players</button>
       </div>
     </div>
-  </div>
+  </section>
 
   <script>
-    let numPlayers = 3;
-    let impostorPlayer = 1;
-    let targetTime = 0;
-    let currentPlayer = 1;
+    let players = [], currentPlayerIndex = 0, impostorIndex = 0, targetTime = 0;
+    let timerRunning = false, startTime = 0, keyLocked = false;
+    let results = [];
 
-    let timerRunning = false;
-    let startTime = 0;
-
-    let scores = [];
+    const screens = ["setupScreen","roleIntroScreen","roleScreen","readyScreen","turnScreen","afterTurnScreen","voteScreen","finalScreen"];
 
     function showScreen(id) {
-      document.querySelectorAll(".screen").forEach(screen => {
-        screen.classList.remove("active");
-      });
+      screens.forEach(screenId => document.getElementById(screenId).classList.remove("active"));
       document.getElementById(id).classList.add("active");
     }
 
-
-    function getRandomTenths(min, max) {
-      // Returns a random integer from min to max, inclusive.
-      const range = max - min + 1;
-
-      if (window.crypto && window.crypto.getRandomValues) {
-        const randomArray = new Uint32Array(1);
-        window.crypto.getRandomValues(randomArray);
-        return min + (randomArray[0] % range);
+    function renderNameInputs() {
+      const count = Number(document.getElementById("playerCount").value);
+      const wrapper = document.getElementById("playerInputs");
+      const oldNames = Array.from(wrapper.querySelectorAll("input")).map(input => input.value);
+      wrapper.innerHTML = "";
+      for (let i = 0; i < count; i++) {
+        const input = document.createElement("input");
+        input.type = "text";
+        input.placeholder = `Player ${i + 1} name`;
+        input.value = oldNames[i] || `Player ${i + 1}`;
+        input.id = `playerName${i}`;
+        wrapper.appendChild(input);
       }
+    }
 
+    function getCryptoRandomInt(min, max) {
+      const range = max - min + 1;
+      if (window.crypto && window.crypto.getRandomValues) {
+        const maxUint = 0xffffffff;
+        const limit = maxUint - (maxUint % range);
+        const array = new Uint32Array(1);
+        do { window.crypto.getRandomValues(array); } while (array[0] >= limit);
+        return min + (array[0] % range);
+      }
       return min + Math.floor(Math.random() * range);
     }
 
+    function getRandomTargetTime() {
+      return getCryptoRandomInt(0, 100) / 10; // 0.0 to 10.0 seconds
+    }
+
     function startGame() {
-      numPlayers = Number(document.getElementById("playerCount").value);
-      impostorPlayer = Math.floor(Math.random() * numPlayers) + 1;
-
-      // Very random target time from 0.0 to 10.0 seconds, in tenths.
-      // Uses crypto randomness when available, which is less predictable than Math.random().
-      targetTime = getRandomTenths(0, 100) / 10;
-
-      currentPlayer = 1;
-      scores = [];
-
-      document.getElementById("roleIntroText").textContent =
-        `Player ${currentPlayer}, come look.`;
-
+      const count = Number(document.getElementById("playerCount").value);
+      players = [];
+      for (let i = 0; i < count; i++) {
+        const name = document.getElementById(`playerName${i}`).value.trim();
+        players.push(name || `Player ${i + 1}`);
+      }
+      impostorIndex = getCryptoRandomInt(0, players.length - 1);
+      targetTime = getRandomTargetTime();
+      currentPlayerIndex = 0;
+      results = [];
+      timerRunning = false;
+      setRoleIntro();
       showScreen("roleIntroScreen");
     }
 
+    function samePlayersNewGame() {
+      impostorIndex = getCryptoRandomInt(0, players.length - 1);
+      targetTime = getRandomTargetTime();
+      currentPlayerIndex = 0;
+      results = [];
+      timerRunning = false;
+      setRoleIntro();
+      showScreen("roleIntroScreen");
+    }
+
+    function setRoleIntro() {
+      document.getElementById("roleIntroTitle").textContent = `${players[currentPlayerIndex]}, come look.`;
+    }
+
     function showRole() {
-      document.getElementById("rolePlayerLabel").textContent = `Player ${currentPlayer}`;
-
+      const name = players[currentPlayerIndex];
       const roleText = document.getElementById("roleText");
-
-      if (currentPlayer === impostorPlayer) {
+      document.getElementById("roleNameLabel").textContent = name;
+      if (currentPlayerIndex === impostorIndex) {
         roleText.textContent = "IMPOSTOR";
-        roleText.className = "role impostor";
+        roleText.className = "role-text impostor";
       } else {
         roleText.textContent = `Time: ${targetTime.toFixed(1)} sec`;
-        roleText.className = "role time-role";
+        roleText.className = "role-text target";
       }
-
       showScreen("roleScreen");
     }
 
     function hideRole() {
-      currentPlayer++;
-
-      if (currentPlayer > numPlayers) {
-        showScreen("readyScreen");
-      } else {
-        document.getElementById("roleIntroText").textContent =
-          `Player ${currentPlayer}, come look.`;
-        showScreen("roleIntroScreen");
-      }
+      currentPlayerIndex++;
+      if (currentPlayerIndex >= players.length) showScreen("readyScreen");
+      else { setRoleIntro(); showScreen("roleIntroScreen"); }
     }
 
     function startTurns() {
-      currentPlayer = 1;
-      prepareTurn();
-    }
-
-    function prepareTurn() {
-      timerRunning = false;
-
-      document.getElementById("turnText").textContent = `Player ${currentPlayer}'s turn`;
-      document.getElementById("tapMain").textContent = "TAP TO START";
-      document.getElementById("timerHint").innerHTML =
-        "Press anywhere in this red box.<br>The real timer is hidden.";
-      document.getElementById("tapZone").classList.remove("running");
-
+      currentPlayerIndex = 0;
+      setupTurn();
       showScreen("turnScreen");
     }
 
-    function pressTimerButton() {
-      if (!timerRunning) {
-        timerRunning = true;
-        startTime = performance.now();
-
-        document.getElementById("tapMain").textContent = "TAP TO STOP";
-        document.getElementById("timerHint").innerHTML =
-          "Timer is running, but hidden.<br>Tap when you think you hit the target.";
-        document.getElementById("tapZone").classList.add("running");
-      } else {
-        timerRunning = false;
-
-        const elapsed = (performance.now() - startTime) / 1000;
-        const difference = Math.abs(elapsed - targetTime);
-
-        scores.push({
-          player: currentPlayer,
-          time: elapsed,
-          difference: difference
-        });
-
-        document.getElementById("resultText").textContent =
-          `Player ${currentPlayer} got ${elapsed.toFixed(2)} sec. Difference: ${difference.toFixed(2)} sec.`;
-
-        showScreen("resultScreen");
-      }
+    function setupTurn() {
+      timerRunning = false;
+      keyLocked = false;
+      document.getElementById("turnStatus").textContent = `${players[currentPlayerIndex]}'s Turn`;
+      document.getElementById("spaceMain").textContent = "PRESS SPACE";
+      document.getElementById("spaceSub").innerHTML = "Press spacebar to start.<br>The entire screen is the button.";
+      document.getElementById("spaceBox").classList.remove("running");
     }
+
+    function startTimer() {
+      timerRunning = true;
+      startTime = performance.now();
+      document.getElementById("spaceMain").textContent = "PRESS SPACE";
+      document.getElementById("spaceSub").innerHTML = "Timer is running but hidden.<br>Press spacebar again to stop.";
+      document.getElementById("spaceBox").classList.add("running");
+    }
+
+    function stopTimer() {
+      const elapsed = (performance.now() - startTime) / 1000;
+      const difference = Math.abs(elapsed - targetTime);
+      results.push({
+        name: players[currentPlayerIndex],
+        index: currentPlayerIndex,
+        time: elapsed,
+        difference: difference,
+        wasImpostor: currentPlayerIndex === impostorIndex
+      });
+      timerRunning = false;
+      keyLocked = true;
+      document.getElementById("afterTurnTitle").textContent = `${players[currentPlayerIndex]}'s turn saved.`;
+      showScreen("afterTurnScreen");
+    }
+
+    function pressSpaceButton() {
+      if (!document.getElementById("turnScreen").classList.contains("active")) return;
+      if (keyLocked) return;
+      if (!timerRunning) startTimer();
+      else stopTimer();
+    }
+
+    function handleFullScreenClick() {
+      pressSpaceButton();
+    }
+
+    document.addEventListener("keydown", function(event) {
+      if (event.code !== "Space") return;
+      const active = document.activeElement;
+      if (active && ["INPUT", "SELECT", "BUTTON"].includes(active.tagName)) return;
+      event.preventDefault();
+      pressSpaceButton();
+    });
 
     function nextPlayer() {
-      currentPlayer++;
-
-      if (currentPlayer > numPlayers) {
-        showScreen("gameOverScreen");
-      } else {
-        prepareTurn();
-      }
+      currentPlayerIndex++;
+      if (currentPlayerIndex >= players.length) showScreen("voteScreen");
+      else { setupTurn(); showScreen("turnScreen"); }
     }
 
-    function revealAnswer() {
-      document.getElementById("finalReveal").style.display = "block";
-      document.getElementById("impostorReveal").textContent =
-        `Impostor: Player ${impostorPlayer}`;
-      document.getElementById("targetReveal").textContent =
-        `Target Time: ${targetTime.toFixed(1)} seconds`;
-
-      const scoreBody = document.getElementById("scoreBody");
-      scoreBody.innerHTML = "";
-
-      scores
-        .sort((a, b) => a.difference - b.difference)
-        .forEach(score => {
-          const row = document.createElement("tr");
-
-          const playerCell = document.createElement("td");
-          playerCell.textContent = `Player ${score.player}`;
-
-          const timeCell = document.createElement("td");
-          timeCell.textContent = `${score.time.toFixed(2)} sec`;
-
-          const diffCell = document.createElement("td");
-          diffCell.textContent = `${score.difference.toFixed(2)} sec`;
-
-          row.appendChild(playerCell);
-          row.appendChild(timeCell);
-          row.appendChild(diffCell);
-
-          scoreBody.appendChild(row);
-        });
+    function revealResults() {
+      document.getElementById("impostorReveal").textContent = `Impostor: ${players[impostorIndex]}`;
+      document.getElementById("targetReveal").textContent = `Target Time: ${targetTime.toFixed(1)} seconds`;
+      const tbody = document.getElementById("resultsBody");
+      tbody.innerHTML = "";
+      const sorted = [...results].sort((a, b) => a.difference - b.difference);
+      sorted.forEach((result, i) => {
+        const row = document.createElement("tr");
+        const rank = document.createElement("td");
+        rank.textContent = i + 1;
+        if (i === 0) rank.className = "best";
+        const name = document.createElement("td");
+        name.textContent = result.wasImpostor ? `${result.name} 👀` : result.name;
+        const time = document.createElement("td");
+        time.textContent = `${result.time.toFixed(2)} sec`;
+        const diff = document.createElement("td");
+        diff.textContent = `${result.difference.toFixed(2)} sec`;
+        row.appendChild(rank); row.appendChild(name); row.appendChild(time); row.appendChild(diff);
+        tbody.appendChild(row);
+      });
+      showScreen("finalScreen");
     }
 
     function resetGame() {
-      document.getElementById("finalReveal").style.display = "none";
+      timerRunning = false;
+      keyLocked = false;
       showScreen("setupScreen");
     }
+
+    renderNameInputs();
   </script>
 </body>
 </html>
+"""
+
+path = Path("/mnt/data/index.html")
+path.write_text(html, encoding="utf-8")
+print(path.as_posix())
